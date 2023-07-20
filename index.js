@@ -48,14 +48,6 @@ loadLanguages([
  * Override these!
  */
 const settings = new (class Settings {
-  get twitterHandle() {
-    return process.env.TWITTER_HANDLE || "jdan";
-  }
-
-  get ogImage() {
-    return process.env.OG_IMAGE || "https://notes.jordanscales.com/me.png";
-  }
-
   get baseUrl() {
     return process.env.BASE_URL || "/";
   }
@@ -110,8 +102,6 @@ const settings = new (class Settings {
       outputDir: this.outputDir,
       baseUrl: this.baseUrl,
       notionDatabaseId: this.notionDatabaseId,
-      twitterHandle: this.twitterHandle,
-      ogImage: this.ogImage,
     };
   }
 })();
@@ -184,7 +174,6 @@ const settings = new (class Settings {
     title: string,
     blocks: CardBlock[]
     filename: string
-    ogImage: string | null
     content?: string
   }} CardPage
 */
@@ -380,8 +369,8 @@ async function textToHtml(pageId, text, allPages) {
 
 async function copyStaticAssets() {
   const assets = [
+    path.join(__dirname, "public/netlify.toml"),
     path.join(__dirname, "public/style.css"),
-    path.join(__dirname, "public/me.png"),
     path.join(__dirname, "public/serve.json"),
     path.join(__dirname, "node_modules/prismjs/themes/prism-coy.css"),
     path.join(__dirname, "node_modules/prismjs/themes/prism-tomorrow.css"),
@@ -432,6 +421,65 @@ async function copyStaticAssets() {
   );
 }
 
+async function generateRssFeed(pages) {
+  const datedPages = pages
+    .map((page) => {
+      const data = {
+        content: page.content,
+        title: page.title,
+        filename: page.filename,
+        lastUpdated: page.lastUpdated,
+        lastUpdatedDateObj: new Date(page.lastUpdated),
+      };
+      return data;
+    })
+    .filter((page) => page.lastUpdated)
+    .sort((a, b) => b.lastUpdatedDateObj - a.lastUpdatedDateObj);
+
+  const SITE_URL = "https://angus.dev";
+
+  const rssText = `<?xml version="1.0" encoding="utf-8"?>
+    <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+    <title>angus.dev - Angus's blog</title>
+    <link>${SITE_URL}</link>
+    <description>
+      Hello, welcome to my blog! I focus on writing more technical or career related articles here. anguslam.com is my main site.
+    </description>
+    <atom:link href="${SITE_URL}/rss" rel="self"/>
+    <language>en-US</language>
+    <lastBuildDate>${new Date().toJSON()}</lastBuildDate>\
+    ${datedPages
+      .map((page) => {
+        const content = page.content
+          .replace(/(<([^>]+)>)/gi, "")
+          .replace(/(\n|\s)+/g, " ");
+
+        const truncatedContent = content
+          .substring(0, Math.min(content.length, 2000))
+          .trim();
+
+        const finalContent = `${truncatedContent}${
+          content.length > 2000 ? "…" : ""
+        }`;
+
+        return `
+    <item>
+      <title>${page.title}</title>
+      <link>${SITE_URL}/${page.filename}</link>
+      <description>${finalContent}</description>
+      <pubDate>${page.lastUpdated}</pubDate>
+      <guid>${page.filename}</guid>
+    </item>`;
+      })
+      .join("")}
+    </channel>
+  </rss>
+  `;
+
+  await fsPromises.writeFile(settings.output("rss.xml"), rssText);
+}
+
 /**
  *
  * @param {CardPage[]} allPages
@@ -463,7 +511,7 @@ const linkOfId = (allPages, id, args = {}) => {
  * @param {CardPage[]} allPages
  */
 async function savePage(
-  { id, title, favicon, headingIcon, content, filename, ogImage },
+  { id, title, favicon, headingIcon, content, filename },
   backlinks,
   allPages
 ) {
@@ -480,9 +528,6 @@ async function savePage(
     path.join(__dirname, "public/script.js")
   );
 
-  const metaImage = ogImage ? settings.url(ogImage) : settings.ogImage;
-  const twitterCard = ogImage ? "summary_large_image" : "summary";
-
   const body = `
     <!doctype html>
     <html lang="en">
@@ -495,11 +540,6 @@ async function savePage(
       <meta name="viewport" content="width=device-width, initial-scale=1">
 
       <meta property="og:title" content="${title}" />
-      <meta property="og:image" content="${metaImage}" />
-
-      <meta name="twitter:card" content="${twitterCard}" />
-      <meta name="twitter:site" content="${settings.twitterHandle}" />
-      <meta name="twitter:title" content="${title}" />
 
       <link rel="stylesheet" href="${settings.url("style.css")}">
       <link rel="preload" href="${settings.url("prism-coy.css")}" as="style">
@@ -983,12 +1023,10 @@ const main = async function main() {
             ? concatenateText(properties.Filename.rich_text)
             : "") || `${id.replace(/-/g, "").slice(0, 8)}.html`;
 
-        const ogImage = properties["og:image"].files[0]
-          ? await downloadImage(
-              properties["og:image"].files[0].file.url,
-              `${id}.ogImage`
-            )
-          : null;
+        const lastUpdated =
+          properties["Last updated"] && properties["Last updated"].date
+            ? properties["Last updated"].date["start"]
+            : null;
 
         const blocks = groupAdjacentBlocksRecursively(
           groupAdjacentBlocksRecursively(
@@ -1007,7 +1045,7 @@ const main = async function main() {
           title,
           blocks,
           filename,
-          ogImage,
+          lastUpdated,
         };
 
         pages.push(pageInstance);
@@ -1033,6 +1071,7 @@ const main = async function main() {
 
   Promise.all([
     ...pages.map((page) => savePage(page, backlinks, pages)),
+    generateRssFeed(pages),
     copyStaticAssets(),
   ]);
 };

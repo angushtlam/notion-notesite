@@ -1,0 +1,95 @@
+[[redirects]]
+  from = "/article"
+  to = "/"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/articles"
+  to = "/"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/article/triplebyte"
+  to = "/triplebyte-college-student.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/article/a-college-students-experience-with-triplebyte"
+  to = "/triplebyte-college-student.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/article/react_native_gotchas"
+  to = "/react-native-gotchas.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/article/stripe_internship"
+  to = "/stripe-internship-2018.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/article/optimizely_internship"
+  to = "/optimizely-internship-2017.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/blog"
+  to = "/"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/article/react-native-gotchas"
+  to = "/react-native-gotchas.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/article/the-case-for-plain-css"
+  to = "/the-case-for-plain-css.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/article/triplebyte-college-student"
+  to = "/triplebyte-college-student.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/article/stripe-internship-2018"
+  to = "/stripe-internship-2018.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/article/optimizely-internship-2017"
+  to = "/optimizely-internship-2017.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/article/building-a-student-tech-community"
+  to = "/building-a-student-tech-community.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/article/miami"
+  to = "/miami.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/article/evergreen-writing"
+  to = "/evergreen-writing"
+  status = 301
+  force = true

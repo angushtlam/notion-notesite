@@ -67,7 +67,9 @@ a:visited {
 }
 
 pre code {
-  padding: 1em 0 !important;
+  background: var(--dimmest) !important;
+  font-size: 0.8em !important;
+  padding: 0.5em 0.5em !important;
   overflow: auto;
   display: block;
 }
