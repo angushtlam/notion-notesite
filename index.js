@@ -517,12 +517,16 @@ async function savePage(
 ) {
   const icon = favicon || (await saveEmojiFavicon("💡"));
 
-  const footer = backlinks[id]
-    ? `<footer><label>mentioned in</label><ul>${backlinks[id]
-        .sort()
-        .map((id) => `<li>${linkOfId(allPages, id)}</li>`)
-        .join("\n")}</ul></footer>`
-    : "";
+  // Backlinks footer
+  // const footer = backlinks[id]
+  //   ? `<footer><label>mentioned in</label><ul>${backlinks[id]
+  //       .sort()
+  //       .map((id) => `<li>${linkOfId(allPages, id)}</li>`)
+  //       .join("\n")}</ul></footer>`
+  //   : "";
+
+  // Dark theme footer
+  const footer = `<button id="toggle-btn" aria-label="enable dark theme">🌙</button>`;
 
   const script = await fsPromises.readFile(
     path.join(__dirname, "public/script.js")
@@ -551,11 +555,13 @@ async function savePage(
     </head>
     <body>
       <script>0</script>
+      <header>
+        <hr class="header-hr-decor" />
+        <a style="margin-left: 4px;" href="https://anguslam.com/">../ Angus Lam</a>
+        <a style="margin-left: 8px;" href="${settings.baseUrl}">/ Blog</a>
+        <hr class="header-hr-decor" />
+      </header>
       <main class="p${id.slice(0, 8)}">
-        <header>
-          <a href="${settings.baseUrl}">Home</a>
-          <button id="toggle-btn" aria-label="enable dark theme">🌙</button>
-        </header>
         ${
           headingIcon
             ? `<div class="title-row">
